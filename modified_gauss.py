@@ -31,8 +31,8 @@ def _calculate(array: np.ndarray) -> ResultContainer:
     result.solution_count = _kronecker_capelli(array)
     if result.solution_count != SolutionCount.ONE:
         return result
-    result.triangle_matrix, k = _forward_path(array.astype(np.double))
-    result.determinant = _calculate_determinant(result.triangle_matrix, k)
+    result.triangle_matrix, switches = _forward_path(array.astype(np.double))
+    result.determinant = _calculate_determinant(result.triangle_matrix, switches)
     result.answer = _backward_path(result.triangle_matrix)
     result.answer_residual = _calculate_residual(result.original_matrix, result.answer)
     return result
@@ -57,7 +57,7 @@ def _kronecker_capelli(array: np.ndarray) -> SolutionCount:
 
 def _forward_path(array: np.ndarray) -> [np.ndarray, int]:
     n = len(array)
-    k = 0
+    switches = 0
     for i in range(n):
         max_val = array[i][i]
         max_row = i
@@ -67,7 +67,7 @@ def _forward_path(array: np.ndarray) -> [np.ndarray, int]:
                 max_row = j
         if i != max_row:
             array[i], array[max_row] = list(array[max_row]), list(array[i])
-            k += 1
+            switches += 1
 
         a_ii = array[i][i]
         for j in range(i + 1, n):
@@ -76,12 +76,12 @@ def _forward_path(array: np.ndarray) -> [np.ndarray, int]:
             for k in range(i, n + 1):
                 array[j][k] += array[i][k] * r
 
-    return [array, k]
+    return [array, switches]
 
 
-def _calculate_determinant(triangle_matrix: np.ndarray, k: int) -> float:
+def _calculate_determinant(triangle_matrix: np.ndarray, switches: int) -> float:
     n = len(triangle_matrix)
-    determinant = (-1.0) ** k
+    determinant = (-1.0) ** switches
     for i in range(n):
         determinant *= triangle_matrix[i][i]
     return determinant

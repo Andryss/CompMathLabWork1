@@ -16,6 +16,7 @@ class ResultContainer:
     original_matrix: np.ndarray = None
     solution_count: SolutionCount = None
     triangle_matrix: np.ndarray = None
+    triangles: np.ndarray = None
     determinant: float = None
     answer: np.ndarray = None
     answer_residual: np.ndarray = None  # English(невязка) == residual
@@ -31,7 +32,7 @@ def _calculate(array: np.ndarray) -> ResultContainer:
     result.solution_count = _kronecker_capelli(array)
     if result.solution_count != SolutionCount.ONE:
         return result
-    result.triangle_matrix, switches = _forward_path(array.astype(np.double))
+    result.triangle_matrix, result.triangles, switches = _forward_path(array.astype(np.float64))
     result.determinant = _calculate_determinant(result.triangle_matrix, switches)
     result.answer = _backward_path(result.triangle_matrix)
     result.answer_residual = _calculate_residual(result.original_matrix, result.answer)
@@ -55,15 +56,16 @@ def _kronecker_capelli(array: np.ndarray) -> SolutionCount:
         return SolutionCount.ONE
 
 
-def _forward_path(array: np.ndarray) -> [np.ndarray, int]:
+def _forward_path(array: np.ndarray) -> [np.ndarray, np.ndarray, int]:
     n = len(array)
+    triangles = []
     switches = 0
-    for i in range(n):
-        max_val = array[i][i]
+    for i in range(n-1):
+        max_val = abs(array[i][i])
         max_row = i
         for j in range(i + 1, n):
-            if array[j][i] > max_val:
-                max_val = array[j][i]
+            if abs(array[j][i]) > max_val:
+                max_val = abs(array[j][i])
                 max_row = j
         if i != max_row:
             array[i], array[max_row] = list(array[max_row]), list(array[i])
@@ -76,7 +78,9 @@ def _forward_path(array: np.ndarray) -> [np.ndarray, int]:
             for k in range(i, n + 1):
                 array[j][k] += array[i][k] * r
 
-    return [array, switches]
+        triangles.append(array.copy())
+
+    return [array, triangles, switches]
 
 
 def _calculate_determinant(triangle_matrix: np.ndarray, switches: int) -> float:

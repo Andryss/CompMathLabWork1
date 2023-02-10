@@ -11,10 +11,13 @@ def print_result(result: ResultContainer):
     print("Solution count:", result.solution_count, end="\n\n")
 
     if result.solution_count != SolutionCount.ONE:
+        print("Can't apply this method here")
         return
 
     print("Triangle matrix:")
-    print(format_matrix(result.triangle_matrix), end="\n\n")
+    for triangle in result.triangles:
+        print(format_matrix(triangle), end="\n\n")
+    # print(format_matrix(result.triangle_matrix), end="\n\n")
 
     print("Determinant:", format_number(result.determinant), end="\n\n")
 
